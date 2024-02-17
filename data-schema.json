@@ -1,0 +1,32 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema",
+	"title": "Record store",
+	"description": "Record store data.",
+	"type": "object",
+	"properties": {
+		"Enabled": {
+			"description": "Whether the mod is enabled.",
+			"type": "string"
+		},
+		"RecordSoundEnabled": {
+			"description": "Whether to play a sound when a new record is achieved.",
+			"type": "boolean"
+		},
+		"SavedSoundId": {
+			"description": "The ID of the sound that should be played (0 if disabled).",
+			"type":	"number"
+		},
+		"Version": {
+			"description": "The version of the mod.",
+			"type": "number"
+		},
+		"_Records": {
+			"description": "An object that contains achieved records.",
+			"type": "object"
+		}
+	},
+	"required": ["Enabled", "RecordSoundEnabled", "SavedSoundId", "_Records"],
+	"$defs": {
+
+	}
+}
