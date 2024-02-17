@@ -1,14 +1,17 @@
+---@diagnostic disable: undefined-global
+
+
 ----------- VARIABLES -----------
 
-local version = 1.1
+local version = 1.0
 
 
-local config = json.load_file("RecordStore.json") or {}
+local config = json.load_file("RecordStoreEvolved.json") or {}
 config.Version = config.Version == nil and 1.0 or config.Version
 config.Enabled = config.Enabled == nil and true or config.Enabled
 config.RecordSoundEnabled = config.RecordSoundEnabled == nil and true or config.RecordSoundEnabled
 config.SavedSoundId = config.SavedSoundId == nil and 3819689307 or config.SavedSoundId
-config._Records = config._Records == nil and {} or config._Records
+config.Records = config.Records == nil and {} or config.Records
 
 
 local sounds = {
@@ -62,8 +65,8 @@ gm.PlayerManager.r = "snow.player.PlayerManager"
 
 
 local function SaveSettings()
-    if json.load_file("RecordStore.json") ~= config then
-        json.dump_file("RecordStore.json", config)
+    if json.load_file("RecordStoreEvolved.json") ~= config then
+        json.dump_file("RecordStoreEvolved.json", config)
     end
 end
 
@@ -105,25 +108,25 @@ end
 local function PrintRecordsForActiveQuest()
     if gm.QuestManager.i:call("isActiveQuest") then
         local questId = tostring(gm.QuestManager.i:call("get_ActiveQuestNo"))
-        if config._Records[questId] then
+        if config.Records[questId] then
             local anyRecordsForWeaponType = false
             local weaponId = GetWeaponTypeId()
             local message = "<COL YEL>" .. weapons[weaponId] .. "</COL> records for this quest: <COL YEL>(" .. questId .. ")</COL>"
 
-            if config._Records[questId]["1"] and config._Records[questId]["1"][weaponId] then
-                message = message .. "\nSolo Record: <COL YEL>" ..  FormatRecordTimeString(config._Records[questId]["1"][weaponId]) .. "</COL>"
+            if config.Records[questId]["1"] and config.Records[questId]["1"][weaponId] then
+                message = message .. "\nSolo Record: <COL YEL>" ..  FormatRecordTimeString(config.Records[questId]["1"][weaponId]) .. "</COL>"
                 if not anyRecordsForWeaponType then anyRecordsForWeaponType = true end
             end
-            if config._Records[questId]["2"] and config._Records[questId]["2"][weaponId] then
-                message = message .. "\n2-Man Record: <COL YEL>" ..  FormatRecordTimeString(config._Records[questId]["2"][weaponId]) .. "</COL>"
+            if config.Records[questId]["2"] and config.Records[questId]["2"][weaponId] then
+                message = message .. "\n2-Man Record: <COL YEL>" ..  FormatRecordTimeString(config.Records[questId]["2"][weaponId]) .. "</COL>"
                 if not anyRecordsForWeaponType then anyRecordsForWeaponType = true end
             end
-            if config._Records[questId]["3"] and config._Records[questId]["3"][weaponId] then
-                message = message .. "\n3-Man Record: <COL YEL>" ..  FormatRecordTimeString(config._Records[questId]["3"][weaponId]) .. "</COL>"
+            if config.Records[questId]["3"] and config.Records[questId]["3"][weaponId] then
+                message = message .. "\n3-Man Record: <COL YEL>" ..  FormatRecordTimeString(config.Records[questId]["3"][weaponId]) .. "</COL>"
                 if not anyRecordsForWeaponType then anyRecordsForWeaponType = true end
             end
-            if config._Records[questId]["4"] and config._Records[questId]["4"][weaponId] then
-                message = message .. "\n4-Man Record: <COL YEL>" ..  FormatRecordTimeString(config._Records[questId]["4"][weaponId]) .. "</COL>"
+            if config.Records[questId]["4"] and config.Records[questId]["4"][weaponId] then
+                message = message .. "\n4-Man Record: <COL YEL>" ..  FormatRecordTimeString(config.Records[questId]["4"][weaponId]) .. "</COL>"
                 if not anyRecordsForWeaponType then anyRecordsForWeaponType = true end
             end
 
@@ -145,19 +148,19 @@ end
 local function DeleteRecordForActiveQuest()
     if gm.QuestManager.i:call("isActiveQuest") then
         local questId = tostring(gm.QuestManager.i:call("get_ActiveQuestNo"))
-        if config._Records[questId] then
+        if config.Records[questId] then
             local partySize = tostring(gm.LobbyManager.i:call("getQuestPlayerCount"))
             local weaponId = GetWeaponTypeId()
 
-            if config._Records[questId][partySize] and config._Records[questId][partySize][weaponId] then
-                config._Records[questId][partySize][weaponId] = nil
+            if config.Records[questId][partySize] and config.Records[questId][partySize][weaponId] then
+                config.Records[questId][partySize][weaponId] = nil
 
-                if not TableHasElements(config._Records[questId][partySize]) then
-                    config._Records[questId][partySize] = nil
+                if not TableHasElements(config.Records[questId][partySize]) then
+                    config.Records[questId][partySize] = nil
                 end
 
-                if not TableHasElements(config._Records[questId]) then
-                    config._Records[questId] = nil
+                if not TableHasElements(config.Records[questId]) then
+                    config.Records[questId] = nil
                 end
 
                 SaveSettings()
@@ -197,7 +200,7 @@ end
 
 
 local function MapRecordsToNewFormat()
-    local oldRecords = config._Records
+    local oldRecords = config.Records
     local weaponId = GetWeaponTypeId()
 
     local mappedRecords = {}
@@ -218,11 +221,11 @@ end
 local function UpdateConfigVersionAndRecords()
     config.Version = version
 
-    if TableHasElements(config._Records) then
+    if TableHasElements(config.Records) then
         local formattedRecords = MapRecordsToNewFormat()
 
-        config._Records = {}
-        config._Records = formattedRecords
+        config.Records = {}
+        config.Records = formattedRecords
         gm.ChatManager.i:call("reqAddChatInfomation", "Existing records mapped to\nversion <COL YEL>" .. config.Version .. "</COL>", 1 and 2289944406)
     end
 
@@ -250,17 +253,17 @@ end
 
 
 local function ValidateRecords(questId, partySize, weaponType)
-    if not config._Records[questId] then
-        config._Records[questId] = {}
+    if not config.Records[questId] then
+        config.Records[questId] = {}
     end
 
-    if not config._Records[questId][partySize] then
-        config._Records[questId][partySize] = {}
+    if not config.Records[questId][partySize] then
+        config.Records[questId][partySize] = {}
     end
 
-    if not config._Records[questId][partySize][weaponType] then
-        config._Records[questId][partySize][weaponType] = {}
-        config._Records[questId][partySize][weaponType] = gm.QuestManager.i:call("getQuestMaxTimeMin") * 60
+    if not config.Records[questId][partySize][weaponType] then
+        config.Records[questId][partySize][weaponType] = {}
+        config.Records[questId][partySize][weaponType] = gm.QuestManager.i:call("getQuestMaxTimeMin") * 60
     end
 end
 
@@ -291,12 +294,12 @@ local function QuestClear()
 
     ValidateRecords(questId, partySizeString, weaponTypeId)
 
-    local currentRecord = config._Records[questId][partySizeString][weaponTypeId]
+    local currentRecord = config.Records[questId][partySizeString][weaponTypeId]
     if questTime >= currentRecord then
         return
     end
 
-    config._Records[questId][partySizeString][weaponTypeId] = questTime
+    config.Records[questId][partySizeString][weaponTypeId] = questTime
     SaveSettings()
 
     local message = FormatRecordString(questTime, currentRecord, partySize, weapons[weaponTypeId])
@@ -321,7 +324,7 @@ re.on_draw_ui(function()
     if imgui.tree_node("Record Store") then
         if ValidateManagers() then
             if config.Version ~= version then
-                if gm.PlayerManager.i:call("findMasterPlayer") and TableHasElements(config._Records) then
+                if gm.PlayerManager.i:call("findMasterPlayer") and TableHasElements(config.Records) then
                     if imgui.button("Update Records") then
                         UpdateConfigVersionAndRecords()
                     end
