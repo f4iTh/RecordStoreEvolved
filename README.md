@@ -13,3 +13,6 @@ The key changes between this and the original mod are:
 ## TODO:
 
  - Create a similar mod for Monster Hunter World.
+ - Update schema to match new data format.
+ - Re-add ability to remove records.
+	- Remove one record at a time or all records at once?
