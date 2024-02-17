@@ -1,6 +1,6 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema",
-	"title": "Record store",
+	"title": "Record Store Evolved",
 	"description": "Record store data.",
 	"type": "object",
 	"properties": {
@@ -20,13 +20,12 @@
 			"description": "The version of the mod.",
 			"type": "number"
 		},
-		"_Records": {
-			"description": "An object that contains achieved records.",
+		"Records": {
+			"description": "An object containing achieved records.",
 			"type": "object"
 		}
 	},
-	"required": ["Enabled", "RecordSoundEnabled", "SavedSoundId", "_Records"],
+	"required": ["Enabled", "RecordSoundEnabled", "SavedSoundId", "Records"],
 	"$defs": {
-
 	}
 }
