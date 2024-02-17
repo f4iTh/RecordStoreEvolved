@@ -1,0 +1,30 @@
+{
+    "Enabled": true,
+    "RecordSoundEnabled": true,
+    "SavedSoundId": 3819689307,
+    "Version": 1.0,
+    "_Records": {
+        "102": {
+            "1": {
+                "5": {
+                    "1": {
+                        "epoch": -1,
+                        "time": 3000
+                    },
+                    "2": {
+                        "epoch": 1708178842,
+                        "time": 86.797
+                    },
+                    "3": {
+                        "epoch": 1708178941,
+                        "time": 35.765
+                    },
+                    "4": {
+                        "epoch": 1708179050,
+                        "time": 34.338
+                    }
+                }
+            }
+        }
+    }
+}
