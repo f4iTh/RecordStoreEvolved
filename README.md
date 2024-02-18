@@ -8,7 +8,7 @@ The key changes between this and the original mod are:
 
 - Storing all records and keeping old records intact.
 - Saving a timestamp of when a record was achieved for data analysis and graphing purposes.
-- Creating a JSON schema for easy data validation.  
+- Creating a JSON schema for easy data validation. (TODO)
 
 ## TODO:
 
