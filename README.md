@@ -14,4 +14,3 @@ The key changes between this and the original mod are:
  - Re-add ability to remove records.
 	- Handle removing records through a basic ImGui menu?
  - Store records per save file?
- - Create a similar mod for Monster Hunter World?
