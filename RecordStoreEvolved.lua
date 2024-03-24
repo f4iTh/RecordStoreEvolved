@@ -1,6 +1,6 @@
 ----------- VARIABLES -----------
 
-local version = 1.0
+local version = 1.1
 
 local config = json.load_file("RecordStoreEvolved.json") or {}
 config.Version = config.Version == nil and 1.0 or config.Version
@@ -50,6 +50,8 @@ gm.LobbyManager = {}
 gm.LobbyManager.r = "snow.LobbyManager"
 gm.PlayerManager = {}
 gm.PlayerManager.r = "snow.player.PlayerManager"
+gm.GuildCardManager = {}
+gm.GuildCardManager.r = "snow.GuildCardManager"
 
 
 ----------- FUNCTIONS -----------
@@ -60,7 +62,7 @@ local function SaveSettings()
   end
 end
 
-local function GetCurrentUTCTimeEpoch()
+local function GetCurrentUTCTimestamp()
   ---@diagnostic disable-next-line: param-type-mismatch
   return os.time(os.date("!*t"))
 end
@@ -73,14 +75,10 @@ local function TableHasElements(table)
   return false
 end
 
-local function GetTableLastIndex(table, toString)
+local function GetTableLength(table)
   local length = 0
   for _, __ in pairs(table) do
     length = length + 1
-  end
-
-  if toString == true then
-    return tostring(length)
   end
 
   return length
@@ -91,6 +89,16 @@ local function GetWeaponTypeId()
   local weaponTypeField = sdk.find_type_definition("snow.player.PlayerBase"):get_field("_playerWeaponType")
 
   return tostring(weaponTypeField:get_data(player))
+end
+
+local function GetGuildCardUniqueId()
+  local guidType = sdk.find_type_definition("System.Guid");
+
+  local guildCard = gm.GuildCardManager.i:get_field("_GuildCard")
+  local playerGuildCard = guildCard:get_field("MyData")
+  local guildCardId = playerGuildCard:get_field("GuildCardID")
+
+  return tostring(guidType:get_method("ToString()"):call(guildCardId))
 end
 
 local function FormatRecordTimeString(record)
@@ -111,37 +119,38 @@ end
 
 local function PrintRecordsForActiveQuest()
   if gm.QuestManager.i:call("isActiveQuest") then
+    local guildCardId = GetGuildCardUniqueId()
     local questId = tostring(gm.QuestManager.i:call("get_ActiveQuestNo"))
-    if config._Records[questId] then
+    if config._Records[guildCardId][questId] then
       local anyRecordsForWeaponType = false
       local weaponId = GetWeaponTypeId()
       local message = "<COL YEL>" .. weapons[weaponId] .. "</COL> records for this quest: <COL YEL>(" .. questId .. ")</COL>"
 
-      if config._Records[questId]["1"] and config._Records[questId]["1"][weaponId] then
-        local lastIndex = GetTableLastIndex(config._Records[questId]["1"][weaponId], true)
-        local lastElement = config._Records[questId]["1"][weaponId][lastIndex]
-        message = message .. "\nSolo Record: <COL YEL>" .. FormatRecordTimeString(lastElement.time) .. "</COL>"
+      if config._Records[guildCardId][questId]["1"] and config._Records[guildCardId][questId]["1"][weaponId] then
+        local lastIndex = GetTableLength(config._Records[guildCardId][questId]["1"][weaponId])
+        local lastElement = config._Records[guildCardId][questId]["1"][weaponId][lastIndex]
+        message = message .. "\nSolo Record: <COL YEL>" .. FormatRecordTimeString(lastElement.completionTime) .. "</COL>"
         if not anyRecordsForWeaponType then anyRecordsForWeaponType = true end
       end
 
-      if config._Records[questId]["2"] and config._Records[questId]["2"][weaponId] then
-        local lastIndex = GetTableLastIndex(config._Records[questId]["2"][weaponId], true)
-        local lastElement = config._Records[questId]["2"][weaponId][lastIndex]
-        message = message .. "\n2-Man Record: <COL YEL>" .. FormatRecordTimeString(lastElement.time) .. "</COL>"
+      if config._Records[guildCardId][questId]["2"] and config._Records[guildCardId][questId]["2"][weaponId] then
+        local lastIndex = GetTableLength(config._Records[guildCardId][questId]["2"][weaponId])
+        local lastElement = config._Records[guildCardId][questId]["2"][weaponId][lastIndex]
+        message = message .. "\n2-Man Record: <COL YEL>" .. FormatRecordTimeString(lastElement.completionTime) .. "</COL>"
         if not anyRecordsForWeaponType then anyRecordsForWeaponType = true end
       end
 
-      if config._Records[questId]["3"] and config._Records[questId]["3"][weaponId] then
-        local lastIndex = GetTableLastIndex(config._Records[questId]["3"][weaponId], true)
-        local lastElement = config._Records[questId]["3"][weaponId][lastIndex]
-        message = message .. "\n3-Man Record: <COL YEL>" .. FormatRecordTimeString(lastElement.time) .. "</COL>"
+      if config._Records[guildCardId][questId]["3"] and config._Records[guildCardId][questId]["3"][weaponId] then
+        local lastIndex = GetTableLength(config._Records[guildCardId][questId]["3"][weaponId])
+        local lastElement = config._Records[guildCardId][questId]["3"][weaponId][lastIndex]
+        message = message .. "\n3-Man Record: <COL YEL>" .. FormatRecordTimeString(lastElement.completionTime) .. "</COL>"
         if not anyRecordsForWeaponType then anyRecordsForWeaponType = true end
       end
 
-      if config._Records[questId]["4"] and config._Records[questId]["4"][weaponId] then
-        local lastIndex = GetTableLastIndex(config._Records[questId]["4"][weaponId], true)
-        local lastElement = config._Records[questId]["4"][weaponId][lastIndex]
-        message = message .. "\n4-Man Record: <COL YEL>" .. FormatRecordTimeString(lastElement.time) .. "</COL>"
+      if config._Records[guildCardId][questId]["4"] and config._Records[guildCardId][questId]["4"][weaponId] then
+        local lastIndex = GetTableLength(config._Records[guildCardId][questId]["4"][weaponId])
+        local lastElement = config._Records[guildCardId][questId]["4"][weaponId][lastIndex]
+        message = message .. "\n4-Man Record: <COL YEL>" .. FormatRecordTimeString(lastElement.completionTime) .. "</COL>"
         if not anyRecordsForWeaponType then anyRecordsForWeaponType = true end
       end
 
@@ -159,6 +168,7 @@ local function PrintRecordsForActiveQuest()
   end
 end
 
+-- TODO: handle removing records
 -- local function DeleteRecordForActiveQuest()
 --     if gm.QuestManager.i:call("isActiveQuest") then
 --         local questId = tostring(gm.QuestManager.i:call("get_ActiveQuestNo"))
@@ -205,7 +215,7 @@ local function FormatRecordString(newRecord, oldRecord, partySize, weaponType)
     recordString = "New <COL YEL>" .. weaponType .. "</COL> " .. partySize .. "-Man Record: <COL YEL>" .. newRecordString .. "</COL>"
   end
 
-  if oldRecord ~= (gm.QuestManager.i:call("getQuestMaxTimeMin") * 60) then
+  if oldRecord ~= -1 then
     recordString = recordString .. "\nOld Record: <COL YEL>" .. oldRecordString .. "</COL>"
   end
 
@@ -214,43 +224,52 @@ end
 
 local function MapRecordsToNewFormat()
   local oldRecords = config._Records
-  local weaponId = GetWeaponTypeId()
+  local guildCardId = GetGuildCardUniqueId()
 
-  local mappedRecords = {}
+  local newRecords = {}
+  newRecords[guildCardId] = {}
   for questId, entries in pairs(oldRecords) do
-    mappedRecords[questId] = {}
+    newRecords[guildCardId][questId] = {}
 
     for partySize, _ in pairs(entries) do
-      mappedRecords[questId][partySize] = {}
-      mappedRecords[questId][partySize][weaponId] = {}
-      -- mappedRecords[questId][partySize][weaponId] = recordTime
+      newRecords[guildCardId][questId][partySize] = {}
 
-      for recordNumber, entryData in pairs(mappedRecords[questId][partySize][weaponId]) do
-        local recordNumberString = tostring(recordNumber)
-        mappedRecords[questId][partySize][weaponId][recordNumberString] = {}
-        mappedRecords[questId][partySize][weaponId][recordNumberString]["time"] = {}
-        mappedRecords[questId][partySize][weaponId][recordNumberString]["time"] = entryData.time
-        mappedRecords[questId][partySize][weaponId][recordNumberString]["epoch"] = {}
-        mappedRecords[questId][partySize][weaponId][recordNumberString]["epoch"] = entryData.epoch
+      for weaponId, _ in pairs(entries[partySize]) do
+        newRecords[guildCardId][questId][partySize][weaponId] = {}
+
+        for _, recordData in pairs(entries[partySize][weaponId]) do
+          local data = {
+            completionTime = recordData.time,
+            timestamp = recordData.epoch
+          }
+          table.insert(newRecords[guildCardId][questId][partySize][weaponId], data)
+        end
       end
     end
   end
 
-  return mappedRecords
+  return newRecords
 end
 
 local function UpdateConfigVersionAndRecords()
-  config.Version = version
-
   if TableHasElements(config._Records) then
     local formattedRecords = MapRecordsToNewFormat()
+    if formattedRecords ~= nil and TableHasElements(formattedRecords) then
+      config.Version = version
 
-    config._Records = {}
-    config._Records = formattedRecords
-    gm.ChatManager.i:call("reqAddChatInfomation", "Existing records mapped to\nversion <COL YEL>" .. config.Version .. "</COL>", 1 and 2289944406)
+      config._Records = {}
+      config._Records = formattedRecords
+
+      gm.ChatManager.i:call("reqAddChatInfomation", "Existing records mapped to\nversion <COL YEL>" .. config.Version .. "</COL>", 1 and 2289944406)
+
+      SaveSettings()
+
+      return
+    end
+
+    print("Unable to map old records to new format.")
+    gm.ChatManager.i:call("reqAddChatInfomation", "Unable to map old records to new format.", 1 and 2289944406)
   end
-
-  SaveSettings()
 end
 
 local function ValidateManagers()
@@ -259,7 +278,7 @@ local function ValidateManagers()
   end
 
   local success = true
-  for k, v in pairs(gm) do
+  for _, v in pairs(gm) do
     v.i = sdk.get_managed_singleton(v.r)
     if not v.i then
       if success then success = false end
@@ -271,39 +290,28 @@ local function ValidateManagers()
   return isManagersInitialized
 end
 
-local function ValidateRecords(questId, partySize, weaponType)
-  if not config._Records[questId] then
-    config._Records[questId] = {}
+local function ValidateRecords(guildCardId, questId, partySize, weaponType)
+  if not config._Records[guildCardId] then
+    config._Records[guildCardId] = {}
   end
 
-  if not config._Records[questId][partySize] then
-    config._Records[questId][partySize] = {}
+  if not config._Records[guildCardId][questId] then
+    config._Records[guildCardId][questId] = {}
   end
 
-  if not config._Records[questId][partySize][weaponType] then
-    config._Records[questId][partySize][weaponType] = {}
+  if not config._Records[guildCardId][questId][partySize] then
+    config._Records[guildCardId][questId][partySize] = {}
   end
 
-  -- if not config.Records[questId][partySize][weaponType]["1"] then
-  --     config.Records[questId][partySize][weaponType]["1"] = {}
-  -- end
-
-  if GetTableLastIndex(config._Records[questId][partySize][weaponType], false) == 0 then
-    config._Records[questId][partySize][weaponType]["1"] = {}
+  if not config._Records[guildCardId][questId][partySize][weaponType] then
+    config._Records[guildCardId][questId][partySize][weaponType] = {}
   end
 
-  for recordNumber, _ in pairs(config._Records[questId][partySize][weaponType]) do
-    local recordNumberString = tostring(recordNumber)
-    if not config._Records[questId][partySize][weaponType][recordNumberString] then
-      config._Records[questId][partySize][weaponType][recordNumberString] = {}
-    end
-
-    if not config._Records[questId][partySize][weaponType][recordNumberString]["time"] then
-      config._Records[questId][partySize][weaponType][recordNumberString]["time"] = gm.QuestManager.i:call("getQuestMaxTimeMin") * 60
-    end
-
-    if not config._Records[questId][partySize][weaponType][recordNumberString]["epoch"] then
-      config._Records[questId][partySize][weaponType][recordNumberString]["epoch"] = -1
+  for i = 1, GetTableLength(config._Records[guildCardId][questId][partySize][weaponType]) do
+    if not config._Records[guildCardId][questId][partySize][weaponType][i] then
+      config._Records[guildCardId][questId][partySize][weaponType][i] = {}
+      config._Records[guildCardId][questId][partySize][weaponType][i]["completionTime"] = -1
+      config._Records[guildCardId][questId][partySize][weaponType][i]["timestamp"] = -1
     end
   end
 end
@@ -329,27 +337,26 @@ local function QuestClear()
 
   local questId = tostring(gm.QuestManager.i:call("get_ActiveQuestNo"))
   local questTime = tonumber(string.format("%.3f", gm.QuestManager.i:call("getQuestElapsedTimeSec")))
+  local guildCardId = GetGuildCardUniqueId()
   local weaponTypeId = GetWeaponTypeId()
   local partySizeString = tostring(partySize)
 
-  ValidateRecords(questId, partySizeString, weaponTypeId)
+  ValidateRecords(guildCardId, questId, partySizeString, weaponTypeId)
 
-  local currentRecordIndex = GetTableLastIndex(config._Records[questId][partySizeString][weaponTypeId], false)
-  local currentRecordIndexString = tostring(currentRecordIndex)
-  local currentRecord = config._Records[questId][partySizeString][weaponTypeId][currentRecordIndexString]
-  if questTime >= currentRecord.time then
+  local currentRecordIndex = GetTableLength(config._Records[guildCardId][questId][partySizeString][weaponTypeId])
+  local currentRecord = config._Records[guildCardId][questId][partySizeString][weaponTypeId][currentRecordIndex]
+  if currentRecord ~= nil and questTime >= currentRecord.completionTime then
     return
   end
 
-  -- nextRecordIndex = currentRecord.epoch != -1 ? currentRecordIndex + 1 : currentRecordIndex
-  local nextRecordIndex = currentRecord.epoch ~= -1 and currentRecordIndex + 1 or currentRecordIndex
-  local nextRecordIndexString = tostring(nextRecordIndex)
-  config._Records[questId][partySizeString][weaponTypeId][nextRecordIndexString] = {}
-  config._Records[questId][partySizeString][weaponTypeId][nextRecordIndexString]["time"] = questTime
-  config._Records[questId][partySizeString][weaponTypeId][nextRecordIndexString]["epoch"] = GetCurrentUTCTimeEpoch()
+  local nextRecordIndex = currentRecordIndex + 1
+  config._Records[guildCardId][questId][partySizeString][weaponTypeId][nextRecordIndex] = {}
+  config._Records[guildCardId][questId][partySizeString][weaponTypeId][nextRecordIndex]["completionTime"] = questTime
+  config._Records[guildCardId][questId][partySizeString][weaponTypeId][nextRecordIndex]["timestamp"] = GetCurrentUTCTimestamp()
+
   SaveSettings()
 
-  local message = FormatRecordString(questTime, currentRecord.time, partySize, weapons[weaponTypeId])
+  local message = FormatRecordString(questTime, currentRecord and currentRecord.completionTime or -1, partySize, weapons[weaponTypeId])
   gm.ChatManager.i:call("reqAddChatInfomation", message, config.RecordSoundEnabled and config.SavedSoundId or 0)
 end
 
@@ -387,6 +394,7 @@ re.on_draw_ui(function()
         PrintRecordsForActiveQuest()
       end
 
+      -- TODO: handle removing records
       -- imgui.spacing()
       -- if imgui.button("Delete record for active quest") then
       --     DeleteRecordForActiveQuest()
